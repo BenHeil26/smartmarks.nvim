@@ -33,9 +33,9 @@ end
 function M.open_window()
   local buf = vim.api.nvim_create_buf(false, true)
 
-  local marks = vim.api.nvim_command_output(":marks") -- gets all marks for this buffer
+  local marks = vim.api.nvim_exec2("marks", { output = true }) -- gets all marks for this buffer
 
-  local marks_tbl = split(marks, "\n")
+  local marks_tbl = split(marks.output, "\n")
 
   vim.api.nvim_buf_set_lines(buf, 0, -1, true, marks_tbl)
 
@@ -43,10 +43,13 @@ function M.open_window()
     relative = 'cursor',
     row = 0,
     col = 0,
-    width = 50,
-    height = 10,
+    width = 75,
+    height = #marks_tbl,
     anchor = "NW",
     style = "minimal",
+    title = "marks",
+    title_pos = "left",
+    border = "single"
   })
 
   M.close_on_input(win, {})
