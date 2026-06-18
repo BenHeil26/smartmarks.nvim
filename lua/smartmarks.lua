@@ -39,7 +39,7 @@ function M.open_window()
 
   vim.api.nvim_buf_set_lines(buf, 0, -1, true, marks_tbl)
 
-  local win = vim.api.nvim_open_win(buf, true, {
+  return vim.api.nvim_open_win(buf, true, {
     relative = 'cursor',
     row = 0,
     col = 0,
@@ -51,45 +51,10 @@ function M.open_window()
     title_pos = "left",
     border = "single"
   })
-
-  M.close_on_input(win, {})
 end
 
-function M.close_on_input(win, opts)
-  opts = opts or {}
-  win = win or vim.api.nvim_get_current_win()
-
-  local closed = false
-
-  -- Delay enabling the handler briefly so the key that opened the float
-  -- doesn't close it immediately.
-  vim.defer_fn(function()
-    local handler
-
-    handler = function(_)
-      -- schedule to avoid running during input processing
-      vim.schedule(function()
-        if closed then return end
-
-        if not vim.api.nvim_win_is_valid(win) then
-          closed = true
-          -- unregister global handler
-          vim.on_key(nil)
-          return
-        end
-
-        -- try to close (ignore errors)
-        pcall(vim.api.nvim_win_close, win, true)
-        closed = true
-
-        -- unregister global handler
-        vim.on_key(nil)
-      end)
-    end
-
-    -- install the global on-key handler
-    vim.on_key(handler)
-  end, 10)
+function M.close_window(win)
+  vim.api.nvim_win_close(win, true);
 end
 
 function M.setup(opts)
@@ -99,7 +64,15 @@ function M.setup(opts)
 
   local keymap = opts.keymap or "<leader>ow"
 
-  vim.keymap.set("n", keymap, M.open_window)
+  vim.keymap.set("n", keymap, function()
+    local win = M.open_window()
+
+    vim.api.nvim_exec2("redraw", {})
+
+    vim.fn.getcharstr()
+
+    M.close_window(win)
+  end)
 end
 
 return M
