@@ -2,7 +2,7 @@ local M = {}
 
 function M.open_window()
   local w1 = vim.api.nvim_open_win(0, false,
-    { relative = 'win', row = 3, col = 3, width = 40, height = 4 })
+    { relative = 'cursor', row = 3, col = 3, width = 40, height = 4 })
 end
 
 function M.setup(opts)
@@ -12,7 +12,7 @@ function M.setup(opts)
 
   local keymap = opts.keymap or "<leader>ow"
 
-  vim.keymap.set("n", keymap, "OpenWindow")
+  vim.keymap.set("n", keymap, M.open_window)
 end
 
 return M
