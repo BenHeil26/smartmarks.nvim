@@ -1,15 +1,49 @@
 local M = {}
 
+-- Simple split: returns all fields (including empty ones) using a plain separator.
+local function split(s, sep)
+  if type(s) ~= "string" or type(sep) ~= "string" then return {} end
+
+  if sep == "" then
+    local t = {}
+
+    for i = 1, #s do t[#t + 1] = s:sub(i, i) end
+
+    return t
+  end
+
+  local t = {}
+  local start = 1
+
+  while true do
+    local i, j = s:find(sep, start, true)
+
+    if not i then
+      t[#t + 1] = s:sub(start)
+      break
+    end
+
+    t[#t + 1] = s:sub(start, i - 1)
+    start = j + 1
+  end
+
+  return t
+end
+
 function M.open_window()
   local buf = vim.api.nvim_create_buf(false, true)
 
-  vim.api.nvim_buf_set_lines(buf, 0, -1, true, { "Hello World" })
+  local marks = vim.api.nvim_command_output(":marks") -- gets all marks for this buffer
+
+  local marks_tbl = split(marks, "\n")
+
+  vim.api.nvim_buf_set_lines(buf, 0, -1, true, marks_tbl)
 
   local win = vim.api.nvim_open_win(buf, true, {
     relative = 'cursor',
     row = 0,
     col = 0,
-    width = 10,
+    width = 50,
     height = 10,
     anchor = "NW",
     style = "minimal",
