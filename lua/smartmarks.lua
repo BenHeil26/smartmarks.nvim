@@ -1,56 +1,69 @@
+local helpers = require("helpers")
+
 local M = {}
-
--- Simple split: returns all fields (including empty ones) using a plain separator.
-local function split(s, sep)
-  if type(s) ~= "string" or type(sep) ~= "string" then return {} end
-
-  if sep == "" then
-    local t = {}
-
-    for i = 1, #s do t[#t + 1] = s:sub(i, i) end
-
-    return t
-  end
-
-  local t = {}
-  local start = 1
-
-  while true do
-    local i, j = s:find(sep, start, true)
-
-    if not i then
-      t[#t + 1] = s:sub(start)
-      break
-    end
-
-    t[#t + 1] = s:sub(start, i - 1)
-    start = j + 1
-  end
-
-  return t
-end
 
 function M.open_window()
   local buf = vim.api.nvim_create_buf(false, true)
 
   local marks = vim.api.nvim_exec2("marks", { output = true }) -- gets all marks for this buffer
 
-  local marks_tbl = split(marks.output, "\n")
+  local marks_tbl = helpers.split(marks.output, "\n")
+  local tbl, width = M.process_marks_table(marks_tbl)
 
   vim.api.nvim_buf_set_lines(buf, 0, -1, true, marks_tbl)
 
   return vim.api.nvim_open_win(buf, true, {
     relative = 'cursor',
-    row = 0,
-    col = 0,
-    width = 75,
-    height = #marks_tbl,
+    row = 1,
+    col = 1,
+    width = width + 2,
+    height = #tbl,
     anchor = "NW",
     style = "minimal",
     title = "marks",
     title_pos = "left",
     border = "single"
   })
+end
+
+--- processes marks lines to strip unwanted text and filter for current buffer only
+--- @param marks_tbl string[]
+--- @return string[] marks_tbl the manipulated table
+--- @return integer max_width the max line length
+function M.process_marks_table(marks_tbl)
+  local to_remove = { 1 } -- always remove the header line
+  local seen_marks = {}
+  local pattern = "(.)%s+(%d+)%s+(%d+)%s+(.*)"
+  local max_width = 0
+
+  for i = 2, #marks_tbl do
+    local m, l, c, txt = marks_tbl[i]:match(pattern)
+
+    -- track max width
+    if #txt > max_width then max_width = #txt end
+
+    -- deduplicate marks
+    local key = l .. " " .. c
+    if seen_marks[key] == nil then
+      seen_marks[key] = i
+    else
+      table.insert(to_remove, i)
+    end
+
+    -- remove the line and column number from the line
+    marks_tbl[i] = m .. " " .. txt
+
+    -- remove marks from other files
+    if txt:match("^%.?[%.%.]?/?[%w%d_%-%.+/]+/%w+%.%w+$") then
+      table.insert(to_remove, i)
+    end
+  end
+
+  for i = #to_remove, 1, -1 do
+    table.remove(marks_tbl, to_remove[i])
+  end
+
+  return marks_tbl, max_width
 end
 
 function M.close_window(win)
