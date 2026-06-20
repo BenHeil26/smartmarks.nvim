@@ -2,6 +2,17 @@ local helpers = require("helpers")
 
 local M = {}
 
+local ns = vim.api.nvim_create_namespace("smartmarks")
+local hl_groups = {
+  "OkMsg",
+  "Type",
+  "String",
+  "Boolean",
+  "WarningMsg",
+  "Title",
+  "Function",
+}
+
 function M.open_window()
   local buf = vim.api.nvim_create_buf(false, true)
 
@@ -11,6 +22,12 @@ function M.open_window()
   local tbl, width = M.process_marks_table(marks_tbl)
 
   vim.api.nvim_buf_set_lines(buf, 0, -1, true, marks_tbl)
+
+  for i = 0, #tbl do
+    vim.api.nvim_buf_set_extmark(buf, ns, i, 0, {
+      line_hl_group = hl_groups[i % #hl_groups + 1],
+    })
+  end
 
   return vim.api.nvim_open_win(buf, true, {
     relative = 'cursor',
@@ -73,9 +90,7 @@ end
 function M.setup(opts)
   opts = opts or {};
 
-  vim.api.nvim_create_user_command("OpenWindow", M.open_window, opts)
-
-  local keymap = opts.keymap or "<leader>ow"
+  local keymap = opts.keymap or "<leader>ma"
 
   vim.keymap.set("n", keymap, function()
     local win = M.open_window()
