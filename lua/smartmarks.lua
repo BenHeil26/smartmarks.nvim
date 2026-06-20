@@ -58,8 +58,6 @@ function M.process_marks_table(marks_tbl)
   for i = 2, #marks_tbl do
     local m, l, c, txt = marks_tbl[i]:match(pattern)
 
-    -- track max width
-    if #txt > max_width then max_width = #txt end
 
     -- deduplicate marks
     local key = l .. " " .. c
@@ -80,6 +78,11 @@ function M.process_marks_table(marks_tbl)
 
   for i = #to_remove, 1, -1 do
     table.remove(marks_tbl, to_remove[i])
+  end
+
+  for _, mark in ipairs(marks_tbl) do
+    -- track max width
+    if #mark > max_width then max_width = #mark end
   end
 
   return marks_tbl, max_width
@@ -116,7 +119,7 @@ end
 
 function M.setup(opts)
   opts = opts or {};
-  vim.keymap.set({ "n", "o" }, "ma", M.handle_mark, { silent = true })
+  vim.keymap.set({ "n", "o" }, "<leader>ma", M.handle_mark, { silent = true })
 end
 
 return M
