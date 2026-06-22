@@ -1,6 +1,5 @@
 local table_helpers = require("table_helpers")
 
-
 local Windows = {
   buf = nil,
   win = nil,
@@ -13,12 +12,12 @@ function Windows.open(marks, ns)
   Windows.buf = vim.api.nvim_create_buf(false, true)
 
   vim.api.nvim_buf_set_lines(Windows.buf, 0, -1, true, table_helpers.map(marks, function(v)
-    return v.text
+    return string.format("%s %s", v.id, v.text)
   end))
 
   local width = 0
   for i, mark in ipairs(marks) do
-    vim.api.nvim_buf_set_extmark(Windows.buf, ns, i, 0, {
+    vim.api.nvim_buf_set_extmark(Windows.buf, ns, i - 1, 0, {
       line_hl_group = mark.hl_group,
     })
 
@@ -40,6 +39,8 @@ function Windows.open(marks, ns)
   })
 end
 
+--- closes the window that displays mark data
+--- @param ns integer the id of the namespace to use
 function Windows.close(ns)
   vim.on_key(nil, ns)
 

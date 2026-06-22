@@ -19,8 +19,8 @@ function Mark:new(s, hl_group)
   local id, line, col, text = s:match(pattern)
 
   instance.id = id
-  instance.line = line
-  instance.col = col
+  instance.line = tonumber(line) or 0
+  instance.col = tonumber(col) or 0
   instance.text = text
   instance.hl_group = hl_group
 
