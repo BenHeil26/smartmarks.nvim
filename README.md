@@ -17,5 +17,6 @@ Lazy
 - Color coding for ease of use
 
 ## Next Up
+- add options
 - make managing marks better
 - manage automatically created marks 
