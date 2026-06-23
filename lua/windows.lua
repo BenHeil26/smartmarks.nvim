@@ -8,7 +8,8 @@ local Windows = {
 --- Opens a window with the specified mark data
 --- @param marks Mark[] an array of marks
 --- @param ns integer the id of the namespace to use
-function Windows.open(marks, ns)
+--- @param opts vim.api.keyset.win_config window options for the floating window
+function Windows.open(marks, ns, opts)
   Windows.buf = vim.api.nvim_create_buf(false, true)
 
   vim.api.nvim_buf_set_lines(Windows.buf, 0, -1, true, table_helpers.map(marks, function(v)
@@ -24,19 +25,10 @@ function Windows.open(marks, ns)
     if #mark.text > width then width = #mark.text end
   end
 
-  Windows.win = vim.api.nvim_open_win(Windows.buf, false, {
-    relative = 'cursor',
-    row = 1,
-    col = 1,
-    width = width + 2,
-    height = #marks,
-    anchor = "NW",
-    style = "minimal",
-    title = "marks",
-    title_pos = "left",
-    border = "single",
-    focusable = false,
-  })
+  opts.width = width + 2
+  opts.height = #marks
+
+  Windows.win = vim.api.nvim_open_win(Windows.buf, false, opts)
 end
 
 --- closes the window that displays mark data

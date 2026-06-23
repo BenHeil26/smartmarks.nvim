@@ -15,8 +15,8 @@ Lazy
 - Virtual Text shows current marks in real time
 - Floating window displays mark preview Text
 - Color coding for ease of use
+- Customization options
 
 ## Next Up
-- add options
 - make managing marks better
 - manage automatically created marks 
